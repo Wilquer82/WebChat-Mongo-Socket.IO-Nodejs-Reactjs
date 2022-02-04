@@ -10,6 +10,7 @@ import Rebel from './img/rebel.jpg';
 import Imperial from './img/imperial.jpg';
 
 const socket = io('https://wilquerwebchat.herokuapp.com/');
+// const socket = io('localhost:3001');
 
 export default function Chat() {
 
@@ -33,15 +34,15 @@ export default function Chat() {
   }
 
   function emitNick() {
-    if (nickName.length > 0) {
-      if (users.some(() => nickName) === false ) {
+    if (nickName.length !== 0) {
+      // if (users.some(() => nickName) === false ) {
         socket.emit('saveNickname', nickName);
         setVisible(false);
-      } else {
-        alert(language.Choose)
-        document.getElementById("nickName").value = "";
-        document.getElementById("nickName").focus();
-      }
+      // } else {
+      //   alert(language.Choose)
+      //   document.getElementById("nickName").value = "";
+      //   document.getElementById("nickName").focus();
+      // }
     } else {
       document.getElementById("nickName").value = "";
       document.getElementById("nickName").focus();
@@ -268,7 +269,7 @@ export default function Chat() {
         <button
           className="exit"
           onClick={() => {
-            socket.emit("disconnect", nickName);  
+            socket.disconnect();
             window.location.reload()
           }}
         >
