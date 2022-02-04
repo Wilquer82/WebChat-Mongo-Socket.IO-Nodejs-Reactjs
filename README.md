@@ -55,3 +55,6 @@ Wlquer Figueiredo
 -  Diego Fernandes da RocketSeat pelos videos que muito auxiliaram. (https://www.youtube.com/channel/UCSfwM5u0Kce6Cce8_S72olg)
 
 -  Também a Matheus Castiglioni e seus vídeos muito didáticos. (https://www.youtube.com/channel/UCSrG4Y5uz0dcSfi_2qMQdGQ)
+
+
+Caso encontre algum Bug ou erro, me notifique no wilquer.fig@gmail.com
