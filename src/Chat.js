@@ -9,7 +9,7 @@ import Casual from './img/casual.jpg';
 import Rebel from './img/rebel.jpg';
 import Imperial from './img/imperial.jpg';
 
-const socket = io('http://localhost:3001');
+const socket = io('https://wilquerwebchat.herokuapp.com/');
 
 export default function Chat() {
 
@@ -94,7 +94,7 @@ export default function Chat() {
   }, [messages])
   
   const fetchMessages = async () => {
-    const result = await axios.get("http://localhost:3001/get");
+    const result = await axios.get("https://wilquerwebchat.herokuapp.com/get");
     const { data } = result;
     console.log(data)
     if (data.length > 0) {
