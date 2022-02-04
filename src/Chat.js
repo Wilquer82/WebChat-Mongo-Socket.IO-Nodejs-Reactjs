@@ -201,7 +201,7 @@ export default function Chat() {
               </div>
             </div>
           </div>
-      </div>
+        </div>
       <div id="mainChat">
         <h3 className="title">STAR WARS WEB CHAT</h3>
         <div className="container" >
@@ -217,7 +217,6 @@ export default function Chat() {
                  key={index}
                >
                  {user[index]}
-                 {console.log(user[index])}
                </div>
             ))}
           </div>
@@ -269,7 +268,7 @@ export default function Chat() {
         <button
           className="exit"
           onClick={() => {
-            socket.disconnect();  
+            socket.emit("disconnect", nickName);  
             window.location.reload()
           }}
         >

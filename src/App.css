@@ -87,7 +87,7 @@ button{
   border: 1px groove #fff;
   padding: 20px;
   border-radius: 25px;
-  overflow-y: visible;
+  overflow-y: auto;
 }
 #users{
   padding-top: 20px;
