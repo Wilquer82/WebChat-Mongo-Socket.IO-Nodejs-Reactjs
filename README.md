@@ -1,7 +1,9 @@
 Web Chat Star Wars
 
 Endereço do projeto: https://61fd31cc11a0ed0cbc3bb70f--kind-perlman-ef2623.netlify.app/
+
 Back-End: https://wilquerwebchat.herokuapp.com/
+
 Banco de dados: MongoDB
 
 ## 🚀 Começando
@@ -45,7 +47,11 @@ Wlquer Figueiredo
 ## 🎁 Expressões de gratidão
 
 - A Deus em Primeiro lugar.
+
 - A Minha esposa Silmara e filhas, Agnes e Melissa (pela paciência).
+
 - A Trybe, pois hoje sou melhor que ontem graças a esta instituição.
+
 -  Diego Fernandes da RocketSeat pelos videos que muito auxiliaram. (https://www.youtube.com/channel/UCSfwM5u0Kce6Cce8_S72olg)
+
 -  Também a Matheus Castiglioni e seus vídeos muito didáticos. (https://www.youtube.com/channel/UCSrG4Y5uz0dcSfi_2qMQdGQ)
