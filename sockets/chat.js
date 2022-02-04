@@ -12,9 +12,8 @@ module.exports = (io) => {
         saveMessage(data);
         io.emit('message', data);
       })
-      socket.on('disconnect', nick => {
-        users = users.filter((item) => item !== nick);
-        io.emit('usersOn', users);
+      socket.on('disconnect', () => {
+        socket.broadcast.emit('userLeft', nickName);
       })
   })
 }
