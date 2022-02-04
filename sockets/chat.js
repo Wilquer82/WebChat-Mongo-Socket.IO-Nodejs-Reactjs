@@ -14,7 +14,7 @@ module.exports  = (io) => {
       io.emit('message', data);
       
       socket.on('disconnect', () => {
-        let usersActual = users.filter((item) => item.nickName !== nickName);
+        let usersActual = users.filter((item) => item !== nickName);
         socket.broadcast.emit('usersOn', usersActual);
       })
     })
