@@ -14,6 +14,7 @@ module.exports  = (io) => {
       
         socket.on('disconnect', () => {
           let usersActual = users.filter((item) => item !== nickName);
+          console.log(usersActual);
           socket.broadcast.emit('usersOn', usersActual);
         })
       })
