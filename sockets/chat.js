@@ -11,9 +11,11 @@ module.exports = (io) => {
       socket.on('message', data => {
         saveMessage(data);
         io.emit('message', data);
-      })
-      socket.on('disconnect', () => {
-        socket.broadcast.emit('userLeft', nickName);
-      })
+       })
+        socket.on('disconnect', nickName => {
+          let usersActual = users.filter((item) => item !== nickName);
+          console.log(usersActual);
+          io.emit('usersOn', usersActual);
+        })
   })
 }
