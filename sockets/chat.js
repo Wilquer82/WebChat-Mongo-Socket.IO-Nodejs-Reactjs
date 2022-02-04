@@ -1,8 +1,7 @@
 const { saveMessage } = require('../controller/chatController');
 
-let users = [];
-
-module.exports  = (io) => {
+module.exports = (io) => {
+  let users = [];
   io.on('connection', socket => {
     socket.on('saveNickname', nickName => {
       users.push(nickName);
