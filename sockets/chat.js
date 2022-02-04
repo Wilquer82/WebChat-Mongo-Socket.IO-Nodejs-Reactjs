@@ -12,10 +12,10 @@ module.exports = (io) => {
         saveMessage(data);
         io.emit('message', data);
        })
-        socket.on('disconnect', nickName => {
-          let usersActual = users.filter((item) => item !== nickName);
-          console.log(usersActual);
-          io.emit('usersOn', usersActual);
-        })
+    socket.on('disconnect', nickName => {
+      let usersActual = users.filter((item) => item !== nickName);
+      console.log(usersActual);
+      io.emit('usersOn', usersActual);
+    })
   })
 }
