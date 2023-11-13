@@ -9,7 +9,8 @@ import Casual from './img/casual.jpg';
 import Rebel from './img/rebel.jpg';
 import Imperial from './img/imperial.jpg';
 
-const socket = io('https://wilquerwebchat.herokuapp.com/');
+const socket = io('https://casaback.fly.dev');
+
 // const socket = io('localhost:3001');
 
 export default function Chat() {
@@ -82,7 +83,7 @@ export default function Chat() {
 
   //Disable do Button MSG
   useEffect(() => {
-     if (message.length>0) {
+    if (message.length>0) {
       setDisabledM(false); 
     }
   },[message])
@@ -95,7 +96,7 @@ export default function Chat() {
   }, [messages])
   
   const fetchMessages = async () => {
-    const result = await axios.get("https://wilquerwebchat.herokuapp.com/get");
+    const result = await axios.get("https://casaback.fly.dev/get");
     const { data } = result;
     console.log(data)
     if (data.length > 0) {

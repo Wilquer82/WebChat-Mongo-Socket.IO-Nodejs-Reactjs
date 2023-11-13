@@ -2,7 +2,7 @@ Web Chat Star Wars
 
 Endereço do projeto: https://61fd31cc11a0ed0cbc3bb70f--kind-perlman-ef2623.netlify.app/
 
-Back-End: https://wilquerwebchat.herokuapp.com/
+Back-End: https://casaback.fly.dev
 
 Banco de dados: MongoDB
 
@@ -21,9 +21,9 @@ Banco de dados: MongoDB
 
 5. Para rodar localmente é necessário subistituir as linhas onde aparacem:
 
-    const socket = io('https://wilquerwebchat.herokuapp.com/')-> Arquivo Chat.js linha 12 -> por const socket = io("localhost:3001")
+    const socket = io('https://casaback.fly.dev')-> Arquivo Chat.js linha 12 -> por const socket = io("localhost:3001")
     e
-    ("https://wilquerwebchat.herokuapp.com/get") -> Arquivo Chat.js linha 97 -> por "localhost:3001/get")
+    ("https://casaback.fly.dev/get") -> Arquivo Chat.js linha 97 -> por "localhost:3001/get")
     
     Obs.: Caso não faça isso o Front-end roda em sua máquina, e o Back-End no heroku.
     
