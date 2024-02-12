@@ -88,10 +88,21 @@ export default function Chat() {
 
   //Atualizando Users
   useEffect(() => {
-    const addUser = newUser => setUsers([...users, newUser])
-    socket.on('usersOn', addUser)
+    const fetchUsers = async () => {
+      try {
+        const response = await axios.get('https://backsocket-xmm01sbe.b4a.run/users');
+        setUsers(response.data);
+      } catch (error) {
+        console.error('Erro ao buscar usuários:', error);
+      }
+    };
+  
+    fetchUsers();
+  
+    const addUser = newUser => setUsers(prevUsers => [...prevUsers, newUser]);
+    socket.on('usersOn', addUser);
     return () => socket.off('usersOn', addUser);
-  }, [users]);
+  }, []);
 
   //Disable do Button Nick
   useEffect(() => {
