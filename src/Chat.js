@@ -25,6 +25,7 @@ export default function Chat() {
   const [message, setMessage] = useState("");
   const [messages, upMessages] = useState([]);
   const [dbMessage, setDbMessage] = useState([]);
+  const [selectedTheme, setSelectedTheme] = useState(null);
 
   function handleLanguage(lan) {
     if (lan === 'Português') {
@@ -37,8 +38,8 @@ export default function Chat() {
   function emitNick() {
     if (nickName.length !== 0) {
       // if (users.some(() => nickName) === false ) {
-        socket.emit('saveNickname', nickName);
-        setVisible(false);
+      socket.emit('saveNickname', nickName);
+      setVisible(false);
       // } else {
       //   alert(language.Choose)
       //   document.getElementById("nickName").value = "";
@@ -54,19 +55,19 @@ export default function Chat() {
     var date = new Date().toString();
     var dateFormated = `${date.slice(8, 10)}/${date.slice(4, 7)}/${date.slice(11, 15)} ${date.slice(16, 24)}`;
     if (message.length) {
-      var messageObj= {
+      var messageObj = {
         nickName: nickName,
         message: message,
         time: dateFormated,
       }
-      socket.emit('message', messageObj )
+      socket.emit('message', messageObj)
       setDisabledM(false);
       document.getElementById("MessInput").value = "";
       document.getElementById("MessInput").focus();
       setMessage("");
     }
   }
-  
+
   //Atualizando Users
   useEffect(() => {
     const addUser = newUser => setUsers([...users, newUser])
@@ -83,18 +84,18 @@ export default function Chat() {
 
   //Disable do Button MSG
   useEffect(() => {
-    if (message.length>0) {
-      setDisabledM(false); 
+    if (message.length > 0) {
+      setDisabledM(false);
     }
-  },[message])
-  
+  }, [message])
+
   //Atualizando Messages
   useEffect(() => {
     const addNewMessage = newMessage => upMessages([...messages, newMessage])
     socket.on('message', addNewMessage)
     return () => socket.off('message', addNewMessage);
   }, [messages])
-  
+
   const fetchMessages = async () => {
     const result = await axios.get("https://backsocket-xmm01sbe.b4a.run/");
     const { data } = result;
@@ -107,104 +108,118 @@ export default function Chat() {
   useEffect(() => {
     fetchMessages();
   }, []);
-    
+
   return (
     <div id="main">
       <div className={visible ? "visible" : "inVisible"}>
         <div className="Mascara">
-          <img className="Casual" src={Casual} alt='Casual'/>
-          <img className="Rebel" src={Rebel} alt='Rebel'/>
-          <img className="Imperial" src={Imperial} alt='Imperial'/>
+          <img className="Casual" src={Casual} alt='Casual' />
+          <img className="Rebel" src={Rebel} alt='Rebel' />
+          <img className="Imperial" src={Imperial} alt='Imperial' />
         </div>
-          <div className="Modal"> 
-            <div id="Idioma">
-              <div className="inpbut">
-                <p>Escolha o Idioma - Choose your Language</p>
-              </div>  
-              <div className="buttonCont inpbut">
-                <button
-                  className="langButton"
-                  onClick={() => {
-                    handleLanguage('Português');
-                  }}>
-                  <img src={Br} alt="Português"/>
-                </button>
-                <button
-                  className="langButton"
-                  onClick={() => {
-                    handleLanguage('English');
-                  }}
-                >
-                  <img src={Usa} alt="English"/>
-                </button>
-              </div>
+        <div className="Modal">
+          <div id="Idioma">
+            <div className="center">
+              <p>Escolha o Idioma - Choose your Language</p>
             </div>
-            <div id="Theme">
-              <div className="inpbut">
-                <p>{language.Theme}</p>
-              </div>
-              <div className="themeb">
-                <button
-                  className="send"
-                  onClick={() => {
-                    document.getElementById("mainChat").style.backgroundImage = "url(" + Casual + ")";
-                    setTheme(true);
-                  }}
-                  >{
-                  language.Casual}
-                </button>
-                <button
-                  className="send"
-                  onClick={() => {
-                    document.getElementById("mainChat").style.backgroundImage = "url(" + Rebel + ")";
-                    setTheme(true);
-                  }}
-                  >
-                    {language.Rebel}
-                </button>
-                <button
-                  className="send"
-                  onClick={() => {
-                    document.getElementById("mainChat").style.backgroundImage = "url(" + Imperial + ")";
-                    document.getElementById("ttusers").style.color = "#fff";
-                    document.getElementById("ttusers").style.textShadow = "#000";
-                    document.getElementById("ttmsg").style.color = "#fff";
-                    document.getElementById("ttmsg").style.textShadow = "#000";
-                    setTheme(true);
-                  }}
-                  >
-                    {language.Galactic}
-                </button>
-              </div>
-            </div>
-            <div id="Nick" className="Nick">
-              <div className="inpbut">
-                <p>{language.Init}</p>
-              </div>
-              <div className="inpbut">
-              <input
-                id="nickName"
-                type="text"
-                className="nickName"
-                onChange={(event) => {
-                  setNickName(event.target.value);
-                }}
-              />
+            <div className="buttonCont center">
               <button
-                id="Goin"
-                className="send"
-                disabled={ disabled }
+                className="langButton"
                 onClick={() => {
-                  emitNick();
+                  handleLanguage('Português');
+                }}>
+                <img src={Br} alt="Português" />
+              </button>
+              <button
+                className="langButton"
+                onClick={() => {
+                  handleLanguage('English');
                 }}
               >
-                {language.GoIn}
+                <img src={Usa} alt="English" />
               </button>
-              </div>
             </div>
           </div>
+          <div id="Theme">
+            <div className="center">
+              <p>{language.Theme}</p>
+            </div>
+            <br/>
+            <br/>
+            <div className="themeb">
+              <button
+                className={`send ${selectedTheme === Casual ? 'selected' : ''}`}
+                onClick={() => {
+                  document.getElementById("mainChat").style.backgroundImage = "url(" + Casual + ")";
+                  setTheme(true);
+                  setSelectedTheme(Casual);
+                }}
+              >{
+                  language.Casual}
+              </button>
+              <button
+                className={`send ${selectedTheme === Rebel ? 'selected' : ''}`}
+                onClick={() => {
+                  document.getElementById("mainChat").style.backgroundImage = "url(" + Rebel + ")";
+                  setTheme(true);
+                  setSelectedTheme(Rebel);
+                }}
+              >
+                {language.Rebel}
+              </button>
+              <button
+                className={`send ${selectedTheme === Imperial ? 'selected' : ''}`}
+                onClick={() => {
+                  document.getElementById("mainChat").style.backgroundImage = "url(" + Imperial + ")";
+                  document.getElementById("ttusers").style.color = "#fff";
+                  document.getElementById("ttusers").style.textShadow = "#000";
+                  document.getElementById("ttmsg").style.color = "#fff";
+                  document.getElementById("ttmsg").style.textShadow = "#000";
+                  setTheme(true);
+                  setSelectedTheme(Imperial);
+                }}
+              >
+                {language.Galactic}
+              </button>
+            </div>
+          </div>
+              <div className="buttonCont center">
+              <p>{language.Init}</p>
+            </div>
+            <form
+              className="buttonCont center"
+              onSubmit={(event) => {
+                event.preventDefault(); // Isso impede que a página seja recarregada
+                emitNick();
+              }}
+            >
+              <div className="inpbut">
+                <input
+                  id="nickName"
+                  type="text"
+                  className="nickName"
+                  onChange={(event) => {
+                    setNickName(event.target.value);
+                  }}
+                />
+                <button
+                  id="Goin"
+                  className="send"
+                  disabled={disabled}
+                  onClick={() => {
+                    emitNick();
+                  }}
+                >
+                  {language.GoIn}
+                </button>
+              </div>
+            </form>
         </div>
+      </div>
       <div id="mainChat">
+        <br/>
+        <br/>
+
         <h3 className="title">STAR WARS WEB CHAT</h3>
         <div className="container" >
           <div id="ttusers"><p>{language.Users}</p></div>
@@ -212,14 +227,14 @@ export default function Chat() {
         </div>
         <div className="container">
           {console.log(users)}
-             <div id="users" >
-             {users.map((user,index)=> (
-               <div
-                 className="baloonUsers"
-                 key={index}
-               >
-                 {user[index]}
-               </div>
+          <div id="users" >
+            {users.map((user, index) => (
+              <div
+                className="baloonUsers"
+                key={index}
+              >
+                {user[index]}
+              </div>
             ))}
           </div>
           <div id="messages">
@@ -245,28 +260,39 @@ export default function Chat() {
             ))}
           </div>
         </div>
+        <br/>
+
         <div className="container">
-          <div className="inpbut">
-            <input
-              id="MessInput"
-              className="minput"
-              type="text"
-              autoComplete="off"
-              placeholder={language.Place}
-              onChange={(event) => {
-                setMessage(event.target.value)
-              }}
-            />
-            <button
-              disabled={ disabledM }
-              onClick={() => {
-                emitMessage();
-              }}
-              className="send"
-            >{language.Send}
-            </button>
-          </div>
+          <form
+            onSubmit={(event) => {
+              event.preventDefault(); // Isso impede que a página seja recarregada
+              emitMessage();
+            }}
+          >
+            <div className="inpbut">
+              <input
+                id="MessInput"
+                className="minput"
+                type="text"
+                autoComplete="off"
+                placeholder={language.Place}
+                onChange={(event) => {
+                  setMessage(event.target.value)
+                }}
+              />
+              <button
+                disabled={disabledM}
+                onClick={() => {
+                  emitMessage();
+                }}
+                className="send"
+              >{language.Send}
+              </button>
+            </div>
+          </form>
         </div>
+        <br/>
+
         <button
           className="exit"
           onClick={() => {
@@ -277,6 +303,6 @@ export default function Chat() {
           {language.Exit}
         </button>
       </div>
-    </div>
+    </div >
   )
 }
