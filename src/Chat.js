@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import './App.css';
 import io from 'socket.io-client';
@@ -27,6 +27,11 @@ export default function Chat() {
   const [dbMessage, setDbMessage] = useState([]);
   const [selectedTheme, setSelectedTheme] = useState(null);
 
+  const nickNameRef = useRef(null);
+  const messageInputRef = useRef(null);
+
+  const socket = socketIOClient('https://backsocket-xmm01sbe.b4a.run/');
+
   function handleLanguage(lan) {
     if (lan === 'Português') {
       setLanguage(languages[0]);
@@ -37,15 +42,10 @@ export default function Chat() {
 
   function emitNick() {
     if (nickName.length !== 0) {
-        socket.emit('saveNickname', nickName);
-        socket.on('duplicateNickname', () => { // Ouça o evento 'duplicateNickname'
-          alert(language.Choose);
-          document.getElementById("nickName").value = "";
-          document.getElementById("nickName").focus();
-        });
+      socket.emit('saveNickname', nickName);
     } else {
-      document.getElementById("nickName").value = "";
-      document.getElementById("nickName").focus();
+      nickNameRef.current.value = "";
+      nickNameRef.current.focus();
       setVisible(false);
     }
   }
@@ -61,8 +61,8 @@ export default function Chat() {
       }
       socket.emit('message', messageObj)
       setDisabledM(false);
-      document.getElementById("MessInput").value = "";
-      document.getElementById("MessInput").focus();
+      messageInputRef.current.value = "";
+      messageInputRef.current.focus();
       setMessage("");
     }
   }
@@ -96,12 +96,16 @@ export default function Chat() {
   }, [messages])
 
   const fetchMessages = async () => {
-    const result = await axios.get("https://backsocket-xmm01sbe.b4a.run/");
-    const { data } = result;
-    console.log(data)
-    if (data.length > 0) {
-      setDbMessage(data);
-    };
+    try {
+      const result = await axios.get("https://backsocket-xmm01sbe.b4a.run/");
+      const { data } = result;
+      console.log(data)
+      if (data.length > 0) {
+        setDbMessage(data);
+      };
+    } catch (error) {
+      console.error("Erro ao buscar mensagens:", error);
+    }
   };
 
   useEffect(() => {
