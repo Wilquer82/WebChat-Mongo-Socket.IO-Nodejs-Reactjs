@@ -37,17 +37,16 @@ export default function Chat() {
 
   function emitNick() {
     if (nickName.length !== 0) {
-      // if (users.some(() => nickName) === false ) {
-      socket.emit('saveNickname', nickName);
-      setVisible(false);
-      // } else {
-      //   alert(language.Choose)
-      //   document.getElementById("nickName").value = "";
-      //   document.getElementById("nickName").focus();
-      // }
+        socket.emit('saveNickname', nickName);
+        socket.on('duplicateNickname', () => { // Ouça o evento 'duplicateNickname'
+          alert(language.Choose);
+          document.getElementById("nickName").value = "";
+          document.getElementById("nickName").focus();
+        });
     } else {
       document.getElementById("nickName").value = "";
       document.getElementById("nickName").focus();
+      setVisible(false);
     }
   }
 
