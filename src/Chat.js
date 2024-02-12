@@ -45,7 +45,6 @@ export default function Chat() {
     if (nickName.length !== 0) {
       socket.emit('saveNickname', nickName);
       setVisible(false);
-
     } else {
       nickNameRef.current.value = "";
       nickNameRef.current.focus();
