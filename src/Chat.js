@@ -88,7 +88,7 @@ export default function Chat() {
     }
   },[message])
   
-  //Atualizando Messages
+  //Atualizando Messages 
   useEffect(() => {
     const addNewMessage = newMessage => upMessages([...messages, newMessage])
     socket.on('message', addNewMessage)
