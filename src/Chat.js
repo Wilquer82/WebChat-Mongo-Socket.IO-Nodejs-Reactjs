@@ -44,10 +44,11 @@ export default function Chat() {
   function emitNick() {
     if (nickName.length !== 0) {
       socket.emit('saveNickname', nickName);
+      setVisible(false);
+
     } else {
       nickNameRef.current.value = "";
       nickNameRef.current.focus();
-      setVisible(false);
     }
   }
 
