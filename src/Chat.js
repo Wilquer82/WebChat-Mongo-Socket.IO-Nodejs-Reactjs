@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import './App.css';
@@ -30,7 +31,7 @@ export default function Chat() {
   const nickNameRef = useRef(null);
   const messageInputRef = useRef(null);
 
-  const socket = socketIOClient('https://backsocket-xmm01sbe.b4a.run/');
+  // const socket = socketIOClient('https://backsocket-xmm01sbe.b4a.run/');
 
   function handleLanguage(lan) {
     if (lan === 'Português') {
