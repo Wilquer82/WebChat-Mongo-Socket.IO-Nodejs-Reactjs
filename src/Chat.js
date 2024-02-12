@@ -35,18 +35,37 @@ export default function Chat() {
     }
   }
 
-  function emitNick() {
+  async function emitNick() {
     if (nickName.length !== 0) {
-        socket.emit('saveNickname', nickName);
-        socket.on('duplicateNickname', () => { // Ouça o evento 'duplicateNickname'
+      try {
+        const response = await axios.get('https://backsocket-xmm01sbe.b4a.run/users');
+        const users = response.data;
+  
+        if (users.includes(nickName)) {
           alert(language.Choose);
           document.getElementById("nickName").value = "";
           document.getElementById("nickName").focus();
-        });
+        } else {
+          socket.emit('saveNickname', nickName);
+        }
+      } catch (error) {
+        console.error('Erro ao buscar usuários:', error);
+      }
     } else {
       document.getElementById("nickName").value = "";
       document.getElementById("nickName").focus();
       setVisible(false);
+    }
+  }
+
+  async function handleExit() {
+    try {
+      await axios.delete(`https://backsocket-xmm01sbe.b4a.run/users/${nickName}`);
+      socket.emit('userExit', nickName); // Emita um evento com o nome de usuário
+      socket.disconnect();
+      window.location.reload()
+    } catch (error) {
+      console.error('Erro ao deletar usuário:', error);
     }
   }
 
@@ -294,11 +313,7 @@ export default function Chat() {
 
         <button
           className="exit"
-          onClick={() => {
-            socket.emit('userExit', nickName); // Emita um evento com o nome de usuário
-            socket.disconnect();
-            window.location.reload()
-          }}
+          onClick={handleExit}
         >
           {language.Exit}
         </button>
