@@ -295,6 +295,7 @@ export default function Chat() {
         <button
           className="exit"
           onClick={() => {
+            socket.emit('userExit', nickName); // Emita um evento com o nome de usuário
             socket.disconnect();
             window.location.reload()
           }}
