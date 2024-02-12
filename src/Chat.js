@@ -9,9 +9,9 @@ import Casual from './img/casual.jpg';
 import Rebel from './img/rebel.jpg';
 import Imperial from './img/imperial.jpg';
 
-// const socket = io('https://casaback.fly.dev');
+const socket = io('https://backsocket-xmm01sbe.b4a.run/');
 
-const socket = io('localhost:3001');
+// const socket = io('http://localhost:3002');
 
 export default function Chat() {
 
@@ -96,7 +96,7 @@ export default function Chat() {
   }, [messages])
   
   const fetchMessages = async () => {
-    const result = await axios.get("localhost:3001/get");
+    const result = await axios.get("https://backsocket-xmm01sbe.b4a.run/");
     const { data } = result;
     console.log(data)
     if (data.length > 0) {
