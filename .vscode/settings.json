@@ -7,6 +7,22 @@
         "/^npm install --package-lock-only$/": {
             "approve": true,
             "matchCommandLine": true
+        },
+        "/^git remote -v$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^git ls-remote --heads origin$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^git ls-tree -r --name-only origin/backend$/": {
+            "approve": true,
+            "matchCommandLine": true
+        },
+        "/^git worktree add backend-cors-fix origin/backend$/": {
+            "approve": true,
+            "matchCommandLine": true
         }
     }
 }
