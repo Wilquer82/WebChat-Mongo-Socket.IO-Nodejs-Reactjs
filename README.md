@@ -1,8 +1,6 @@
 Web Chat Star Wars
 
-Endereço do projeto: https://61fd31cc11a0ed0cbc3bb70f--kind-perlman-ef2623.netlify.app/
-
-Back-End: https://casaback.fly.dev
+Endereço do projeto: [https://61fd31cc11a0ed0cbc3bb70f--kind-perlman-ef2623.netlify.app/](https://webchat-mongo-socket-io-nodejs-reactjs.onrender.com/)
 
 Banco de dados: MongoDB
 
