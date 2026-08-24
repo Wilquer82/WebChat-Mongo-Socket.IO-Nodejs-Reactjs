@@ -142,7 +142,7 @@ export default function Chat() {
   const [accountMode, setAccountMode] = useState('login');
   const [accountPassword, setAccountPassword] = useState('');
   const [language, setLanguage] = useState('pt');
-  const [theme, setTheme] = useState('casual');
+  const [theme, setTheme] = useState('galactic');
   const [room, setRoom] = useState(null);
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [hiddenRoomSlug, setHiddenRoomSlug] = useState('');
