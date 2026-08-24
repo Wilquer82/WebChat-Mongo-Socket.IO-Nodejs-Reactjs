@@ -3,7 +3,7 @@ import axios from 'axios';
 import io from 'socket.io-client';
 import './App.css';
 
-const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 const socket = io(apiUrl, { autoConnect: false });
 const base64 = (bytes) => btoa(String.fromCharCode(...new Uint8Array(bytes)));
 const bytes = (value) => Uint8Array.from(atob(value), (char) => char.charCodeAt(0));
