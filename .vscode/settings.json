@@ -23,6 +23,10 @@
         "/^git worktree add backend-cors-fix origin/backend$/": {
             "approve": true,
             "matchCommandLine": true
+        },
+        "/^cd \"c:\\\\Users\\\\user\\\\Documents\\\\ChatSocket\\\\WebChat-Mongo-Socket\\.IO-Nodejs-Reactjs\\\\backend-cors-fix\" ; node server\\.js$/": {
+            "approve": true,
+            "matchCommandLine": true
         }
     }
 }
