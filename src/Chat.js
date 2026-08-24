@@ -1,334 +1,67 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
-import './App.css';
 import io from 'socket.io-client';
-import languages from './data';
-import Br from './img/brazil.png';
-import Usa from './img/Usa.png';
-import Casual from './img/casual.jpg';
-import Rebel from './img/rebel.jpg';
-import Imperial from './img/imperial.jpg';
+import './App.css';
 
-const socket = io('https://backsocket-xmm01sbe.b4a.run/');
+const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+const socket = io(apiUrl, { autoConnect: false });
+const base64 = (bytes) => btoa(String.fromCharCode(...new Uint8Array(bytes)));
+const bytes = (value) => Uint8Array.from(atob(value), (char) => char.charCodeAt(0));
+const auth = (token) => ({ headers: { Authorization: `Bearer ${token}` } });
 
-// const socket = io('http://localhost:3002');
+async function keyFor(password, room) {
+  const source = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey({ name: 'PBKDF2', salt: new TextEncoder().encode(`ChatSocket:${room}`), iterations: 120000, hash: 'SHA-256' }, source, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+}
+async function encrypt(key, text) {
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ciphertext = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, new TextEncoder().encode(text));
+  return { ciphertext: base64(ciphertext), iv: base64(iv) };
+}
+async function decrypt(key, item) {
+  try { return new TextDecoder().decode(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: bytes(item.iv) }, key, bytes(item.ciphertext))); } catch (_error) { return '[mensagem protegida por outra senha]'; }
+}
 
 export default function Chat() {
-
-  const [language, setLanguage] = useState(languages[0]);
-  const [visible, setVisible] = useState(true);
-  const [disabled, setDisabled] = useState(true);
-  const [disabledM, setDisabledM] = useState(true);
-  const [nickName, setNickName] = useState("");
+  const [token, setToken] = useState(localStorage.getItem('chat-token') || '');
+  const [userId, setUserId] = useState(localStorage.getItem('chat-user-id') || '');
+  const [nickName, setNickName] = useState(localStorage.getItem('chat-name') || '');
+  const [accountMode, setAccountMode] = useState('login');
+  const [accountPassword, setAccountPassword] = useState('');
+  const [room, setRoom] = useState(null);
+  const [selectedRoom, setSelectedRoom] = useState(null);
+  const [rooms, setRooms] = useState([]);
   const [users, setUsers] = useState([]);
-  const [theme, setTheme] = useState(false);
-  const [message, setMessage] = useState("");
-  const [messages, upMessages] = useState([]);
-  const [dbMessage, setDbMessage] = useState([]);
-  const [selectedTheme, setSelectedTheme] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [form, setForm] = useState({ name: '', slug: '', password: '', hidden: false });
+  const [password, setPassword] = useState('');
+  const [message, setMessage] = useState('');
+  const [ghost, setGhost] = useState('');
+  const [error, setError] = useState('');
+  const keyRef = useRef(null);
 
-  function handleLanguage(lan) {
-    if (lan === 'Português') {
-      setLanguage(languages[0]);
-    } else {
-      setLanguage(languages[1]);
-    }
-  }
-
-  async function emitNick() {
-    if (nickName.length !== 0) {
-      try {
-        const response = await axios.get('https://backsocket-xmm01sbe.b4a.run/users');
-        const users = response.data;
-  
-        if (users.includes(nickName)) {
-          alert(language.Choose);
-          document.getElementById("nickName").value = "";
-          document.getElementById("nickName").focus();
-        } else {
-          socket.emit('saveNickname', nickName);
-        }
-      } catch (error) {
-        console.error('Erro ao buscar usuários:', error);
-      }
-    } else {
-      document.getElementById("nickName").value = "";
-      document.getElementById("nickName").focus();
-      setVisible(false);
-    }
-  }
-
-  async function handleExit() {
-    try {
-      await axios.delete(`https://backsocket-xmm01sbe.b4a.run/users/${nickName}`);
-      socket.emit('userExit', nickName); // Emita um evento com o nome de usuário
-      socket.disconnect();
-      window.location.reload()
-    } catch (error) {
-      console.error('Erro ao deletar usuário:', error);
-    }
-  }
-
-  function emitMessage() {
-    var date = new Date().toString();
-    var dateFormated = `${date.slice(8, 10)}/${date.slice(4, 7)}/${date.slice(11, 15)} ${date.slice(16, 24)}`;
-    if (message.length) {
-      var messageObj = {
-        nickName: nickName,
-        message: message,
-        time: dateFormated,
-      }
-      socket.emit('message', messageObj)
-      setDisabledM(false);
-      document.getElementById("MessInput").value = "";
-      document.getElementById("MessInput").focus();
-      setMessage("");
-    }
-  }
-
-  //Atualizando Users
+  const loadRooms = async (currentToken = token) => { try { setRooms((await axios.get(`${apiUrl}/rooms`, auth(currentToken))).data); } catch (_error) { setError('Não foi possível carregar as salas.'); } };
+  useEffect(() => { if (token) axios.get(`${apiUrl}/rooms`, auth(token)).then((response) => setRooms(response.data)).catch(() => setError('Não foi possível carregar as salas.')); }, [token]);
   useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const response = await axios.get('https://backsocket-xmm01sbe.b4a.run/users');
-        setUsers(response.data);
-      } catch (error) {
-        console.error('Erro ao buscar usuários:', error);
-      }
-    };
-  
-    fetchUsers();
-  
-    const addUser = newUser => setUsers(prevUsers => [...prevUsers, newUser]);
-    socket.on('usersOn', addUser);
-    return () => socket.off('usersOn', addUser);
+    const receiveMessage = async (item) => { const text = await decrypt(keyRef.current, item); setMessages((current) => [...current, { ...item, text }]); };
+    socket.on('message', receiveMessage); socket.on('usersOn', setUsers);
+    return () => { socket.off('message', receiveMessage); socket.off('usersOn', setUsers); };
   }, []);
 
-  //Disable do Button Nick
-  useEffect(() => {
-    if (nickName.length && theme === true) {
-      setDisabled(false);
-    }
-  }, [nickName, theme]);
-
-  //Disable do Button MSG
-  useEffect(() => {
-    if (message.length > 0) {
-      setDisabledM(false);
-    }
-  }, [message])
-
-  //Atualizando Messages
-  useEffect(() => {
-    const addNewMessage = newMessage => upMessages([...messages, newMessage])
-    socket.on('message', addNewMessage)
-    return () => socket.off('message', addNewMessage);
-  }, [messages])
-
-  const fetchMessages = async () => {
-    const result = await axios.get("https://backsocket-xmm01sbe.b4a.run/");
-    const { data } = result;
-    console.log(data)
-    if (data.length > 0) {
-      setDbMessage(data);
-    };
+  const login = async (event) => { event.preventDefault(); setError(''); try { const result = (await axios.post(`${apiUrl}/auth/${accountMode}`, { nickName, password: accountPassword })).data; localStorage.setItem('chat-token', result.token); localStorage.setItem('chat-name', result.nickName); localStorage.setItem('chat-user-id', result.userId); setToken(result.token); setUserId(result.userId); setNickName(result.nickName); setAccountPassword(''); } catch (caught) { setError(caught.response?.data?.error || 'Não foi possível autenticar.'); } };
+  const createRoom = async (event) => { event.preventDefault(); setError(''); try { await axios.post(`${apiUrl}/rooms`, form, auth(token)); setForm({ name: '', slug: '', password: '', hidden: false }); loadRooms(); } catch (caught) { setError(caught.response?.data?.error || 'Não foi possível criar a sala.'); } };
+  const join = async (selectedRoom, secret = password, ghostSecret = '') => {
+    setError(''); try {
+      const verification = (await axios.post(`${apiUrl}/rooms/${selectedRoom.slug}/verify`, { password: secret }, auth(token))).data;
+      const key = await keyFor(secret, selectedRoom.slug); const history = (await axios.get(`${apiUrl}/`, { ...auth(verification.accessToken), params: { room: selectedRoom.slug } })).data.reverse();
+      socket.connect(); socket.emit('joinRoom', { room: selectedRoom.slug, nickName, userId, token, accessToken: verification.accessToken, ghost: ghostSecret }, async (result) => { if (!result?.ok) return setError(result?.error || 'Entrada recusada.'); keyRef.current = key; setRoom({ ...selectedRoom, currentName: result.nickName }); setSelectedRoom(null); setPassword(''); setMessages(await Promise.all(history.map(async (item) => ({ ...item, text: await decrypt(key, item) })))); });
+    } catch (caught) { setError(caught.response?.data?.error || 'Senha incorreta ou sala indisponível.'); }
   };
+  const send = async (event) => { event.preventDefault(); if (!message.trim() || !keyRef.current) return; socket.emit('message', await encrypt(keyRef.current, message.trim()), (result) => result?.ok ? setMessage('') : setError(result?.error || 'Mensagem não enviada.')); };
+  const exit = () => { socket.emit('userExit'); socket.disconnect(); keyRef.current = null; setRoom(null); setMessages([]); setUsers([]); };
+  const toggleBlock = async () => { await axios.patch(`${apiUrl}/rooms/${room.slug}`, { blocked: !room.blocked }, auth(token)); setRoom({ ...room, blocked: !room.blocked }); loadRooms(); };
 
-  useEffect(() => {
-    fetchMessages();
-  }, []);
-
-  return (
-    <div id="main">
-      <div className={visible ? "visible" : "inVisible"}>
-        <div className="Mascara">
-          <img className="Casual" src={Casual} alt='Casual' />
-          <img className="Rebel" src={Rebel} alt='Rebel' />
-          <img className="Imperial" src={Imperial} alt='Imperial' />
-        </div>
-        <div className="Modal">
-          <div id="Idioma">
-            <div className="center">
-              <p>Escolha o Idioma - Choose your Language</p>
-            </div>
-            <div className="buttonCont center">
-              <button
-                className="langButton"
-                onClick={() => {
-                  handleLanguage('Português');
-                }}>
-                <img src={Br} alt="Português" />
-              </button>
-              <button
-                className="langButton"
-                onClick={() => {
-                  handleLanguage('English');
-                }}
-              >
-                <img src={Usa} alt="English" />
-              </button>
-            </div>
-          </div>
-          <div id="Theme">
-            <div className="center">
-              <p>{language.Theme}</p>
-            </div>
-            <br/>
-            <br/>
-            <div className="themeb">
-              <button
-                className={`send ${selectedTheme === Casual ? 'selected' : ''}`}
-                onClick={() => {
-                  document.getElementById("mainChat").style.backgroundImage = "url(" + Casual + ")";
-                  setTheme(true);
-                  setSelectedTheme(Casual);
-                }}
-              >{
-                  language.Casual}
-              </button>
-              <button
-                className={`send ${selectedTheme === Rebel ? 'selected' : ''}`}
-                onClick={() => {
-                  document.getElementById("mainChat").style.backgroundImage = "url(" + Rebel + ")";
-                  setTheme(true);
-                  setSelectedTheme(Rebel);
-                }}
-              >
-                {language.Rebel}
-              </button>
-              <button
-                className={`send ${selectedTheme === Imperial ? 'selected' : ''}`}
-                onClick={() => {
-                  document.getElementById("mainChat").style.backgroundImage = "url(" + Imperial + ")";
-                  document.getElementById("ttusers").style.color = "#fff";
-                  document.getElementById("ttusers").style.textShadow = "#000";
-                  document.getElementById("ttmsg").style.color = "#fff";
-                  document.getElementById("ttmsg").style.textShadow = "#000";
-                  setTheme(true);
-                  setSelectedTheme(Imperial);
-                }}
-              >
-                {language.Galactic}
-              </button>
-            </div>
-          </div>
-              <div className="buttonCont center">
-              <p>{language.Init}</p>
-            </div>
-            <form
-              className="buttonCont center"
-              onSubmit={(event) => {
-                event.preventDefault(); // Isso impede que a página seja recarregada
-                emitNick();
-              }}
-            >
-              <div className="inpbut">
-                <input
-                  id="nickName"
-                  type="text"
-                  className="nickName"
-                  onChange={(event) => {
-                    setNickName(event.target.value);
-                  }}
-                />
-                <button
-                  id="Goin"
-                  className="send"
-                  disabled={disabled}
-                  onClick={() => {
-                    emitNick();
-                  }}
-                >
-                  {language.GoIn}
-                </button>
-              </div>
-            </form>
-        </div>
-      </div>
-      <div id="mainChat">
-        <br/>
-        <br/>
-
-        <h3 className="title">STAR WARS WEB CHAT</h3>
-        <div className="container" >
-          <div id="ttusers"><p>{language.Users}</p></div>
-          <div id="ttmsg"><p>{language.Messages}</p></div>
-        </div>
-        <div className="container">
-          {console.log(users)}
-          <div id="users" >
-            {users.map((user, index) => (
-              <div
-                className="baloonUsers"
-                key={index}
-              >
-                {user[index]}
-              </div>
-            ))}
-          </div>
-          <div id="messages">
-            {dbMessage.map((m, index) => (
-              <div
-                className="baloonbd"
-                key={index}
-              >
-                <p className="time">{m.time}</p>
-                <p className="nick">{m.nickName}:</p>
-                <p>{m.message}</p>
-              </div>
-            ))}
-            {messages.map((m, index) => (
-              <div
-                className="baloon"
-                key={index}
-              >
-                <p className="time">{m.time}</p>
-                <p className="nick">{m.nickName}:</p>
-                <p>{m.message}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-        <br/>
-
-        <div className="container">
-          <form
-            onSubmit={(event) => {
-              event.preventDefault(); // Isso impede que a página seja recarregada
-              emitMessage();
-            }}
-          >
-            <div className="inpbut">
-              <input
-                id="MessInput"
-                className="minput"
-                type="text"
-                autoComplete="off"
-                placeholder={language.Place}
-                onChange={(event) => {
-                  setMessage(event.target.value)
-                }}
-              />
-              <button
-                disabled={disabledM}
-                onClick={() => {
-                  emitMessage();
-                }}
-                className="send"
-              >{language.Send}
-              </button>
-            </div>
-          </form>
-        </div>
-        <br/>
-
-        <button
-          className="exit"
-          onClick={handleExit}
-        >
-          {language.Exit}
-        </button>
-      </div>
-    </div >
-  )
+  if (!token) return <main className="entry-page"><section className="entry-panel"><p className="eyebrow">CHATSOCKET / PRIVATE ROOMS</p><h1>Converse sem deixar a chave escapar.</h1><p className="intro">Crie uma conta para proteger sua identidade e suas salas.</p><form className="entry-form" onSubmit={login}><label>Seu apelido<input value={nickName} onChange={(event) => setNickName(event.target.value)} minLength="2" maxLength="30" required /></label><label>Senha<input type="password" value={accountPassword} onChange={(event) => setAccountPassword(event.target.value)} minLength="8" required /></label>{error && <p className="error">{error}</p>}<button className="primary-button">{accountMode === 'login' ? 'Entrar' : 'Criar conta'}</button></form><button className="quiet-button account-toggle" onClick={() => { setAccountMode(accountMode === 'login' ? 'register' : 'login'); setError(''); }}>{accountMode === 'login' ? 'Ainda não tenho conta' : 'Já tenho uma conta'}</button></section></main>;
+  if (room) return <main className="chat-page"><header className="chat-header"><div><p className="eyebrow">SALA PROTEGIDA</p><h1>#{room.slug}</h1></div><div className="header-actions">{room.ownerId === userId && <button className="quiet-button" onClick={toggleBlock}>{room.blocked ? 'Desbloquear' : 'Bloquear'}</button>}<button className="quiet-button" onClick={exit}>Sair</button></div></header><div className="chat-layout"><aside className="users-panel"><h2>Na sala <span>{users.length}</span></h2>{users.map((user) => <div className="user" key={user}><i />{user}</div>)}</aside><section className="conversation"><div className="messages" aria-live="polite">{messages.map((item, index) => <article className={item.nickName === room.currentName ? 'message own' : 'message'} key={`${item.time}-${index}`}><div><strong>{item.nickName}</strong><time>{new Date(item.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</time></div><p>{item.text}</p></article>)}</div><form className="message-form" onSubmit={send}><input value={message} onChange={(event) => setMessage(event.target.value)} placeholder="Mensagem cifrada..." maxLength="2000" /><button className="primary-button">Enviar</button></form>{error && <p className="error">{error}</p>}</section></div></main>;
+  return <main className="rooms-page"><header className="rooms-header"><div><p className="eyebrow">CHATSOCKET / {nickName.toUpperCase()}</p><h1>Escolha seu espaço.</h1></div><button className="quiet-button" onClick={() => { localStorage.clear(); setToken(''); }}>Sair</button></header><div className="rooms-grid"><section><div className="section-heading"><h2>Salas abertas</h2><span>{rooms.length} disponíveis</span></div>{rooms.length ? rooms.map((item) => <button className="room-card" key={item.slug} onClick={() => { setSelectedRoom(item); setPassword(''); }}><strong>{item.name}</strong><small>#{item.slug} · criada por {item.owner}</small></button>) : <p className="muted">Crie a primeira sala.</p>}</section><section className="create-panel"><h2>Nova sala</h2><form className="entry-form" onSubmit={createRoom}><label>Nome<input value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} required /></label><label>Identificador<input value={form.slug} onChange={(event) => setForm({ ...form, slug: event.target.value })} placeholder="minha-sala" required /></label><label>Senha<input type="password" value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} minLength="8" required /></label><label className="check"><input type="checkbox" checked={form.hidden} onChange={(event) => setForm({ ...form, hidden: event.target.checked })} /> Sala invisível na lista</label><button className="primary-button">Criar sala</button></form></section></div>{selectedRoom && <div className="modal-backdrop"><form className="join-modal" onSubmit={(event) => { event.preventDefault(); join(selectedRoom); }}><button type="button" className="modal-close" onClick={() => setSelectedRoom(null)}>×</button><p className="eyebrow">ENTRAR EM #{selectedRoom.slug}</p><h2>Qual é a chave?</h2><input autoFocus type="password" value={password} onChange={(event) => setPassword(event.target.value)} minLength="8" placeholder="Senha da sala" required /><label className="ghost-field">Admin fantasma<input type="password" value={ghost} onChange={(event) => setGhost(event.target.value)} placeholder="opcional" /></label><button className="primary-button">Entrar</button>{error && <p className="error">{error}</p>}</form></div>}</main>;
 }

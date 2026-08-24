@@ -1,8 +1,10 @@
 import { render, screen } from '@testing-library/react';
 import App from './App';
 
-test('renders learn react link', () => {
+jest.mock('axios', () => ({ get: jest.fn(), post: jest.fn(), patch: jest.fn() }));
+
+test('renders the account entry screen', () => {
   render(<App />);
-  const linkElement = screen.getByText(/learn react/i);
-  expect(linkElement).toBeInTheDocument();
+  expect(screen.getByText(/Converse sem deixar a chave escapar/i)).toBeInTheDocument();
+  expect(screen.getByLabelText(/Seu apelido/i)).toBeInTheDocument();
 });
