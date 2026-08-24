@@ -28,6 +28,8 @@ input:focus { border-color: var(--ink); box-shadow: 3px 3px 0 var(--lime); }
 .chat-header { display: flex; align-items: flex-start; justify-content: space-between; max-width: 1100px; margin: 0 auto 22px; }
 .chat-header h1 { margin: 0; font-size: 2rem; }
 .quiet-button { border: 1px solid var(--line); border-radius: 4px; padding: 10px 15px; background: transparent; color: var(--ink); }
+.danger-button { border: 1px solid #b63325; border-radius: 4px; padding: 10px 15px; background: #b63325; color: white; font-weight: 600; }
+.danger-button:disabled { cursor: wait; opacity: .65; }
 .chat-layout { display: grid; gap: 14px; max-width: 1100px; margin: auto; }
 .users-panel, .conversation { border: 1px solid var(--line); border-radius: 5px; background: var(--surface); }
 .users-panel { padding: 16px; }
@@ -67,6 +69,7 @@ input:focus { border-color: var(--ink); box-shadow: 3px 3px 0 var(--lime); }
 .modal-backdrop { position: fixed; inset: 0; display: grid; place-items: center; padding: 20px; background: rgba(23,35,33,.38); }
 .join-modal { position: relative; width: min(100%, 420px); padding: 28px; background: var(--paper); color: var(--ink); box-shadow: 8px 8px 0 var(--ink); }
 .join-modal h2 { margin-bottom: 18px; }
+.delete-modal > p:not(.eyebrow) { color: var(--muted); line-height: 1.5; }
 .join-modal > input { margin-bottom: 15px; }
 .modal-close { position: absolute; top: 10px; right: 12px; border: 0; background: transparent; color: var(--muted); font-size: 26px; }
 .member-check-button { width: 100%; }

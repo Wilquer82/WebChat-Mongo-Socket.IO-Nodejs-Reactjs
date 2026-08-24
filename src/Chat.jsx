@@ -37,6 +37,10 @@ const translations = {
     chooseSpace: 'Escolha seu espaço.',
     blocked: 'Bloquear',
     unblocked: 'Desbloquear',
+    deleteRoom: 'Apagar sala',
+    deleteRoomTitle: 'Apagar esta sala?',
+    deleteRoomDescription: 'Essa ação remove a sala e todas as mensagens do banco de dados.',
+    confirmDelete: 'Apagar definitivamente',
     send: 'Enviar',
     encryptedMessage: 'Mensagem cifrada...',
     createdBy: 'criada por',
@@ -82,6 +86,10 @@ const translations = {
     chooseSpace: 'Choose your space.',
     blocked: 'Block',
     unblocked: 'Unblock',
+    deleteRoom: 'Delete room',
+    deleteRoomTitle: 'Delete this room?',
+    deleteRoomDescription: 'This removes the room and all messages from the database.',
+    confirmDelete: 'Delete permanently',
     send: 'Send',
     encryptedMessage: 'Encrypted message...',
     createdBy: 'created by',
@@ -146,6 +154,9 @@ export default function Chat() {
   const [message, setMessage] = useState('');
   const [ghost, setGhost] = useState('');
   const [roomUsersPreview, setRoomUsersPreview] = useState(null);
+  const [deleteRoomOpen, setDeleteRoomOpen] = useState(false);
+  const [deletionPassword, setDeletionPassword] = useState('');
+  const [deletingRoom, setDeletingRoom] = useState(false);
   const [checkingMembers, setCheckingMembers] = useState(false);
   const [error, setError] = useState('');
   const keyRef = useRef(null);
@@ -283,6 +294,23 @@ export default function Chat() {
     loadRooms();
   };
 
+  const deleteRoom = async (event) => {
+    event.preventDefault();
+    setDeletingRoom(true);
+    setError('');
+    try {
+      await axios.delete(`${apiUrl}/rooms/${room.slug}`, { ...auth(token), data: { password: deletionPassword } });
+      exit();
+      setDeleteRoomOpen(false);
+      setDeletionPassword('');
+      loadRooms();
+    } catch (caught) {
+      setError(caught.response?.data?.error || 'Não foi possível apagar a sala.');
+    } finally {
+      setDeletingRoom(false);
+    }
+  };
+
   if (!token) {
     return (
       <main className="entry-page" style={themeStyle}>
@@ -321,7 +349,7 @@ export default function Chat() {
         <header className="chat-header">
           <div><p className="eyebrow">{strings.protectedRoom}</p><h1>#{room.slug}</h1></div>
           <div className="header-actions">
-            {room.ownerId === userId && <button className="quiet-button" onClick={toggleBlock}>{room.blocked ? strings.unblocked : strings.blocked}</button>}
+            {room.ownerId === userId && <><button className="quiet-button" onClick={toggleBlock}>{room.blocked ? strings.unblocked : strings.blocked}</button><button className="danger-button" onClick={() => setDeleteRoomOpen(true)}>{strings.deleteRoom}</button></>}
             <button className="quiet-button" onClick={exit}>{strings.logout}</button>
           </div>
         </header>
@@ -346,6 +374,19 @@ export default function Chat() {
             {error && <p className="error">{error}</p>}
           </section>
         </div>
+        {deleteRoomOpen && (
+          <div className="modal-backdrop">
+            <form className="join-modal delete-modal" onSubmit={deleteRoom}>
+              <button type="button" className="modal-close" onClick={() => setDeleteRoomOpen(false)}>×</button>
+              <p className="eyebrow">#{room.slug}</p>
+              <h2>{strings.deleteRoomTitle}</h2>
+              <p>{strings.deleteRoomDescription}</p>
+              <input autoFocus type="password" value={deletionPassword} onChange={(event) => setDeletionPassword(event.target.value)} minLength="8" placeholder={strings.roomPasswordLabel} required />
+              <button className="danger-button" disabled={deletingRoom}>{deletingRoom ? '...' : strings.confirmDelete}</button>
+              {error && <p className="error">{error}</p>}
+            </form>
+          </div>
+        )}
       </main>
     );
   }

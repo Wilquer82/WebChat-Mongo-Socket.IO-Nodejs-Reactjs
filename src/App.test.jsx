@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import { describe, expect, test, vi } from 'vitest';
 import App from './App.jsx';
 
-vi.mock('axios', () => ({ get: vi.fn(), post: vi.fn(), patch: vi.fn() }));
+vi.mock('axios', () => ({ get: vi.fn(), post: vi.fn(), patch: vi.fn(), delete: vi.fn() }));
 
 describe('App', () => {
   test('renders the account entry screen', () => {
