@@ -3,6 +3,10 @@
         "/^npm --version; node --version; git status --short$/": {
             "approve": true,
             "matchCommandLine": true
+        },
+        "/^npm install --package-lock-only$/": {
+            "approve": true,
+            "matchCommandLine": true
         }
     }
 }
