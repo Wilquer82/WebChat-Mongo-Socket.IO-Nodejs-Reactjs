@@ -320,15 +320,15 @@ export default function Chat() {
               <button type="button" className={language === 'pt' ? 'lang-button active' : 'lang-button'} onClick={() => setLanguage('pt')}>PT</button>
               <button type="button" className={language === 'en' ? 'lang-button active' : 'lang-button'} onClick={() => setLanguage('en')}>EN</button>
             </div>
+            <div className="theme-picker" aria-label={strings.theme}>
+              {Object.entries(themeOptions).map(([id, item]) => (
+                <button key={id} type="button" className={theme === id ? 'theme-button active' : 'theme-button'} onClick={() => setTheme(id)}>{item.label}</button>
+              ))}
+            </div>
           </div>
           <p className="eyebrow">CHATSOCKET / PRIVATE ROOMS</p>
           <h1>{strings.title}</h1>
           <p className="intro">{strings.subtitle}</p>
-          <div className="theme-picker" aria-label={strings.theme}>
-            {Object.entries(themeOptions).map(([id, item]) => (
-              <button key={id} type="button" className={theme === id ? 'theme-button active' : 'theme-button'} onClick={() => setTheme(id)}>{item.label}</button>
-            ))}
-          </div>
           <form className="entry-form" onSubmit={login}>
             <label>{strings.nickname}<input value={nickName} onChange={(event) => setNickName(event.target.value)} minLength="2" maxLength="30" required /></label>
             <label>{strings.password}<input type="password" value={accountPassword} onChange={(event) => setAccountPassword(event.target.value)} minLength="8" required /></label>
