@@ -56,6 +56,10 @@ input:focus { border-color: var(--ink); box-shadow: 3px 3px 0 var(--lime); }
 .room-card { width: 100%; display: grid; gap: 7px; margin-top: 10px; padding: 18px; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); color: var(--ink); text-align: left; transition: transform .2s, border-color .2s; }
 .room-card:hover { transform: translateX(4px); border-color: var(--ink); }
 .room-card small { color: var(--muted); }
+.hidden-join { display: grid; gap: 10px; margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--line); }
+.hidden-join h2 { margin: 0; font-size: 1.05rem; }
+.hidden-join p { margin: 0; color: var(--muted); font-size: 13px; }
+.hidden-join .quiet-button { justify-self: start; }
 .create-panel { padding: 20px; border-left: 2px solid var(--coral); background: var(--surface); }
 .check { display: flex; grid-template-columns: auto 1fr; align-items: center; gap: 9px; }
 .check input { width: auto; accent-color: var(--coral); }

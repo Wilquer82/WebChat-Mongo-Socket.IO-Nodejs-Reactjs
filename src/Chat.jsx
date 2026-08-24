@@ -43,6 +43,9 @@ const translations = {
     ghostAlias: 'Alias fantasma',
     ghostDescription: 'Digite um nome alternativo para entrar em modo fantasma',
     roomPasswordLabel: 'Senha da sala',
+    hiddenJoin: 'Entrar em sala invisível',
+    hiddenJoinDescription: 'Use o identificador compartilhado pelo dono da sala.',
+    hiddenRoomId: 'Identificador da sala',
     checkMembers: 'Verificar quem está na sala',
     checkingMembers: 'Verificando...',
     membersFound: 'Pessoas na sala',
@@ -85,6 +88,9 @@ const translations = {
     ghostAlias: 'Ghost alias',
     ghostDescription: 'Enter an alternate name to join in ghost mode',
     roomPasswordLabel: 'Room password',
+    hiddenJoin: 'Join an invisible room',
+    hiddenJoinDescription: 'Use the identifier shared by the room owner.',
+    hiddenRoomId: 'Room identifier',
     checkMembers: 'Check who is in the room',
     checkingMembers: 'Checking...',
     membersFound: 'People in the room',
@@ -131,6 +137,7 @@ export default function Chat() {
   const [theme, setTheme] = useState('casual');
   const [room, setRoom] = useState(null);
   const [selectedRoom, setSelectedRoom] = useState(null);
+  const [hiddenRoomSlug, setHiddenRoomSlug] = useState('');
   const [rooms, setRooms] = useState([]);
   const [users, setUsers] = useState([]);
   const [messages, setMessages] = useState([]);
@@ -361,6 +368,18 @@ export default function Chat() {
               <small>#{item.slug} · {strings.createdBy} {item.owner}</small>
             </button>
           )) : <p className="muted">{strings.firstRoom}</p>}
+          <form className="hidden-join" onSubmit={(event) => {
+            event.preventDefault();
+            const slug = hiddenRoomSlug.trim();
+            if (!slug) return;
+            setSelectedRoom({ slug, name: slug });
+            setPassword('');
+          }}>
+            <h2>{strings.hiddenJoin}</h2>
+            <p>{strings.hiddenJoinDescription}</p>
+            <input value={hiddenRoomSlug} onChange={(event) => setHiddenRoomSlug(event.target.value)} placeholder={strings.hiddenRoomId} required />
+            <button className="quiet-button">{strings.joinRoom}</button>
+          </form>
         </section>
         <section className="create-panel">
           <h2>{strings.createRoom}</h2>
