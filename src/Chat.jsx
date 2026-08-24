@@ -43,6 +43,11 @@ const translations = {
     ghostAlias: 'Alias fantasma',
     ghostDescription: 'Digite um nome alternativo para entrar em modo fantasma',
     roomPasswordLabel: 'Senha da sala',
+    checkMembers: 'Verificar quem está na sala',
+    checkingMembers: 'Verificando...',
+    membersFound: 'Pessoas na sala',
+    noMembers: 'Ninguém está na sala.',
+    memberCheckError: 'Não foi possível verificar quem está na sala.',
     firstRoom: 'Crie a primeira sala.',
     genericError: 'Não foi possível autenticar.',
     roomListError: 'Não foi possível carregar as salas.',
@@ -80,6 +85,11 @@ const translations = {
     ghostAlias: 'Ghost alias',
     ghostDescription: 'Enter an alternate name to join in ghost mode',
     roomPasswordLabel: 'Room password',
+    checkMembers: 'Check who is in the room',
+    checkingMembers: 'Checking...',
+    membersFound: 'People in the room',
+    noMembers: 'Nobody is in the room.',
+    memberCheckError: 'Could not check who is in the room.',
     firstRoom: 'Create the first room.',
     genericError: 'Could not authenticate.',
     roomListError: 'Could not load rooms.',
@@ -87,9 +97,9 @@ const translations = {
 };
 
 const themeOptions = {
-  casual: { label: 'Casual', paper: '#f4f1e9', ink: '#172321', muted: '#66736d', lime: '#c8f169', coral: '#ff735c', line: '#d6d9cb' },
-  galactic: { label: 'Galactic Empire', paper: '#101623', ink: '#eef4ff', muted: '#a6b5d1', lime: '#8dd7ff', coral: '#ff6b6b', line: '#2a394d' },
-  rebel: { label: 'Rebel Alliance', paper: '#f6e9d6', ink: '#231b17', muted: '#7f6a5e', lime: '#f0d067', coral: '#d65a45', line: '#ead9be' },
+  casual: { label: 'Casual', page: 'linear-gradient(135deg, #f4f1e9 0%, #e5e8d8 100%)', paper: '#f4f1e9', surface: 'rgba(255,255,255,.55)', message: '#ffffff', ink: '#172321', muted: '#66736d', lime: '#c8f169', coral: '#ff735c', line: '#d6d9cb', buttonHover: '#2c403a' },
+  galactic: { label: 'Galactic Empire', page: 'linear-gradient(135deg, #0b101c 0%, #182943 100%)', paper: '#101623', surface: 'rgba(31,48,75,.86)', message: '#1d2d49', ink: '#eef4ff', muted: '#a6b5d1', lime: '#8dd7ff', coral: '#ff6b6b', line: '#405675', buttonHover: '#263c61' },
+  rebel: { label: 'Rebel Alliance', page: 'linear-gradient(135deg, #f6e9d6 0%, #ead9be 100%)', paper: '#f6e9d6', surface: 'rgba(255,255,255,.5)', message: '#fffaf1', ink: '#231b17', muted: '#7f6a5e', lime: '#f0d067', coral: '#d65a45', line: '#ead9be', buttonHover: '#4c2921' },
 };
 
 async function keyFor(password, room) {
@@ -128,11 +138,13 @@ export default function Chat() {
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
   const [ghost, setGhost] = useState('');
+  const [roomUsersPreview, setRoomUsersPreview] = useState(null);
+  const [checkingMembers, setCheckingMembers] = useState(false);
   const [error, setError] = useState('');
   const keyRef = useRef(null);
   const currentTheme = themeOptions[theme] || themeOptions.casual;
   const strings = translations[language] || translations.pt;
-  const themeStyle = { '--paper': currentTheme.paper, '--ink': currentTheme.ink, '--muted': currentTheme.muted, '--lime': currentTheme.lime, '--coral': currentTheme.coral, '--line': currentTheme.line };
+  const themeStyle = { '--page': currentTheme.page, '--paper': currentTheme.paper, '--surface': currentTheme.surface, '--message': currentTheme.message, '--ink': currentTheme.ink, '--muted': currentTheme.muted, '--lime': currentTheme.lime, '--coral': currentTheme.coral, '--line': currentTheme.line, '--button-hover': currentTheme.buttonHover };
 
   const loadRooms = async (currentToken = token) => {
     try {
@@ -213,6 +225,27 @@ export default function Chat() {
     } catch (caught) {
       setError(caught.response?.data?.error || 'Senha incorreta ou sala indisponível.');
     }
+  };
+
+  const checkRoomMembers = (selectedRoomItem) => {
+    setCheckingMembers(true);
+    setRoomUsersPreview(null);
+    setError('');
+    socket.connect();
+
+    const timeout = window.setTimeout(() => {
+      socket.disconnect();
+      setCheckingMembers(false);
+      setError(strings.memberCheckError);
+    }, 5000);
+
+    socket.emit('getRoomUsers', { room: selectedRoomItem.slug, token }, (result) => {
+      window.clearTimeout(timeout);
+      socket.disconnect();
+      setCheckingMembers(false);
+      if (!result?.ok) return setError(result?.error || strings.memberCheckError);
+      setRoomUsersPreview(result.users || []);
+    });
   };
 
   const send = async (event) => {
@@ -348,6 +381,15 @@ export default function Chat() {
             <p className="eyebrow">{strings.joinRoom} #{selectedRoom.slug}</p>
             <h2>{strings.enterKey}</h2>
             <input autoFocus type="password" value={password} onChange={(event) => setPassword(event.target.value)} minLength="8" placeholder={strings.roomPasswordLabel} required />
+            <button type="button" className="quiet-button member-check-button" onClick={() => checkRoomMembers(selectedRoom)} disabled={checkingMembers}>
+              {checkingMembers ? strings.checkingMembers : strings.checkMembers}
+            </button>
+            {roomUsersPreview && (
+              <div className="members-preview">
+                <strong>{strings.membersFound} ({roomUsersPreview.length})</strong>
+                {roomUsersPreview.length ? roomUsersPreview.map((user) => <span key={user}>{user}</span>) : <span>{strings.noMembers}</span>}
+              </div>
+            )}
             <label className="ghost-field">
               <input type="text" value={ghost} onChange={(event) => setGhost(event.target.value)} maxLength="30" placeholder={strings.ghostAlias} />
               {strings.ghostDescription}

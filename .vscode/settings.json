@@ -27,6 +27,10 @@
         "/^cd \"c:\\\\Users\\\\user\\\\Documents\\\\ChatSocket\\\\WebChat-Mongo-Socket\\.IO-Nodejs-Reactjs\\\\backend-cors-fix\" ; node server\\.js$/": {
             "approve": true,
             "matchCommandLine": true
+        },
+        "/^git ls-tree -r --name-only origin/backend \\| Select-String 'server\\|index\\|app\\|package'$/": {
+            "approve": true,
+            "matchCommandLine": true
         }
     }
 }
